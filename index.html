@@ -421,6 +421,25 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1584487529800253&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
+<style>
+/* foco nos entregaveis: capa menor, carrossel maior */
+.manual-row > *{min-width:0;}
+.manual-row .manual-cover{max-width:100%; width:100%; box-shadow:none;}
+.manual-row .manual-cover > img{display:block; width:auto; max-width:200px; max-height:250px; margin:0 auto; object-fit:contain;}
+.manual-row .sample-marquee{max-width:100%; margin-top:22px;}
+.manual-row .sample-track{gap:16px; animation-duration:30s;}
+.manual-row .sample-track img{width:180px; height:240px; object-fit:cover; border-radius:10px;}
+@media(max-width:880px){
+  .manual-row .manual-cover > img{max-width:140px; max-height:175px;}
+  .manual-row .sample-marquee{max-width:100%;}
+  .manual-row .sample-track img{width:150px; height:200px;}
+}
+@media(max-width:480px){
+  .manual-row .manual-cover{max-width:100%;}
+  .manual-row .manual-cover > img{max-width:120px; max-height:150px;}
+  .manual-row .sample-track img{width:170px; height:227px;}
+}
+</style>
 </head>
 <body>
 
