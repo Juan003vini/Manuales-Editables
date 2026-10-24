@@ -440,6 +440,12 @@ src="https://www.facebook.com/tr?id=1584487529800253&ev=PageView&noscript=1"
   .manual-row .sample-track img{width:170px; height:227px;}
 }
 </style>
+<style>
+.local-price{margin-top:12px; display:inline-block; background:rgba(184,144,46,0.14); border:1px solid rgba(184,144,46,0.45); color:#F6E9DC; border-radius:30px; padding:7px 16px; font-size:0.92rem;}
+.local-price b{color:#fff;}
+.local-price[hidden]{display:none;}
+.local-note{font-size:0.74rem; opacity:0.6; margin-top:8px;}
+</style>
 </head>
 <body>
 
@@ -857,6 +863,8 @@ src="https://www.facebook.com/tr?id=1584487529800253&ev=PageView&noscript=1"
         <div class="was">Valor real: <s>US$97.00</s></div>
         <div class="now">US$19.90</div>
         <div class="unit">Pago único · Sin suscripción</div>
+        <div class="local-price" id="localPrice" hidden><span id="lpFlag"></span> En tu moneda: <b>aprox. <span id="lpVal"></span></b></div>
+        <div class="local-note">El valor aparece convertido a tu moneda local en la página de pago.</div>
       </div>
       <div class="countdown" id="countdown">
         <div><span class="num" id="cd-min">15</span><span class="lab">Minutos</span></div>
@@ -966,7 +974,7 @@ src="https://www.facebook.com/tr?id=1584487529800253&ev=PageView&noscript=1"
 <section class="final">
   <div class="container">
     <h2>Tus clientas y alumnas ya merecen materiales a la altura de lo que sabes. La pregunta es: ¿cuándo se los vas a dar?</h2>
-    <p style="opacity:0.85;">6 manuales profesionales editables + 4 bonos. Una sola compra. Acceso de por vida. <strong>Por US$19.90.</strong></p>
+    <p style="opacity:0.85;">6 manuales profesionales editables + 4 bonos. Una sola compra. Acceso de por vida. <strong>Por US$19.90<span class="lp-inline"></span>.</strong></p>
     <a href="#offer" class="btn btn-primary">Quiero mis manuales ahora</a>
   </div>
 </section>
@@ -1020,5 +1028,31 @@ src="https://www.facebook.com/tr?id=1584487529800253&ev=PageView&noscript=1"
   })();
 </script>
 
+<script>
+/* Preco aproximado na moeda local (US$19,90 + ~8% de conversao da Hotmart). Cotacoes de 19-23/out/2026. */
+(function(){
+  var P={
+    MX:['🇲🇽','$ 399 MXN'], CO:['🇨🇴','$ 68.000 COP'], PE:['🇵🇪','S/ 74 PEN'], CL:['🇨🇱','$ 21.100 CLP'],
+    AR:['🇦🇷','$ 32.600 ARS'], GT:['🇬🇹','Q 164 GTQ'], CR:['🇨🇷','₡ 9.760 CRC'], DO:['🇩🇴','RD$ 1.320 DOP'],
+    HN:['🇭🇳','L 577 HNL'], PY:['🇵🇾','₲ 123.000 PYG'], UY:['🇺🇾','$ 863 UYU'], BR:['🇧🇷','R$ 109 BRL'], ES:['🇪🇸','20 € EUR']
+  };
+  var TZ={'America/Bogota':'CO','America/Lima':'PE','America/Santiago':'CL','America/Punta_Arenas':'CL','Pacific/Easter':'CL',
+    'America/Guatemala':'GT','America/Costa_Rica':'CR','America/Santo_Domingo':'DO','America/Tegucigalpa':'HN',
+    'America/Asuncion':'PY','America/Montevideo':'UY','Europe/Madrid':'ES','Atlantic/Canary':'ES','Africa/Ceuta':'ES','America/Buenos_Aires':'AR'};
+  var MXZ=['Mexico_City','Cancun','Merida','Monterrey','Matamoros','Chihuahua','Ciudad_Juarez','Ojinaga','Mazatlan','Bahia_Banderas','Hermosillo','Tijuana'];
+  var BRZ=['Sao_Paulo','Bahia','Fortaleza','Recife','Belem','Maceio','Araguaina','Manaus','Cuiaba','Campo_Grande','Porto_Velho','Boa_Vista','Rio_Branco','Santarem','Noronha','Eirunepe'];
+  var c=null, tz='';
+  try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone||''; }catch(e){}
+  if(TZ[tz]) c=TZ[tz];
+  else if(tz.indexOf('America/Argentina/')===0) c='AR';
+  else if(tz.indexOf('America/')===0 && MXZ.indexOf(tz.slice(8))>-1) c='MX';
+  else if(tz.indexOf('America/')===0 && BRZ.indexOf(tz.slice(8))>-1) c='BR';
+  if(!c){ try{ var l=(navigator.language||'').split('-')[1]; if(l&&P[l.toUpperCase()]) c=l.toUpperCase(); }catch(e){} }
+  if(!c||!P[c]) return;
+  var box=document.getElementById('localPrice');
+  if(box){ document.getElementById('lpFlag').textContent=P[c][0]; document.getElementById('lpVal').textContent=P[c][1]; box.hidden=false; }
+  var inl=document.querySelector('.lp-inline'); if(inl) inl.textContent=' (aprox. '+P[c][1]+')';
+})();
+</script>
 </body>
 </html>
