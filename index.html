@@ -686,6 +686,7 @@ document.documentElement.className+=' js';
   var YT='https://www.youtube-nocookie.com/embed/BFKVPzRy3wo?playsinline=1&rel=0&modestbranding=1&iv_load_policy=3';
   var mode='wait';
   function youtube(){
+    if(mode==='yt'||mode==='native') return; // nunca recarrega o player
     mode='yt';
     var fr=document.createElement('iframe');
     fr.src=YT; fr.title='Video Manuales Editables';
@@ -695,22 +696,25 @@ document.documentElement.className+=' js';
     w.innerHTML=''; w.appendChild(fr);
   }
   function native(){
+    if(mode==='native') return;
+    mode='native';
     var v=document.createElement('video');
     v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');v.playsInline=true;
     v.controls=true;v.preload='auto';v.poster='/video-capa.jpg';v.src='/video.mp4';
     v.style.cssText='width:100%;height:100%;object-fit:cover;display:block;background:#000;';
-    v.addEventListener('error',youtube);
+    v.addEventListener('error',function(){mode='mp4-fail';youtube();});
     w.innerHTML=''; w.appendChild(v);
     var p=v.play(); if(p&&p.catch) p.catch(function(){});
     try{fbq('trackCustom','VideoPlay');}catch(e){}
   }
   fetch('/video.mp4',{method:'HEAD',cache:'no-store'}).then(function(r){
     var len=parseInt(r.headers.get('content-length')||'0',10), ty=r.headers.get('content-type')||'';
+    if(mode!=='wait') return; // a cliente já tocou: não mexe no player
     if(r.ok && len>500000 && ty.indexOf('video')>-1){ mode='mp4'; } else { youtube(); }
-  }).catch(function(){ youtube(); });
+  }).catch(function(){ if(mode==='wait') youtube(); });
   f.addEventListener('click',function(){
     if(mode==='mp4'){ native(); }
-    else { youtube(); }
+    else if(mode==='wait'){ youtube(); }
   });
 })();
 // Carrossel infinito (duplica via JS para o HTML ficar leve)
