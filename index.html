@@ -334,8 +334,7 @@ a{color:inherit;}
     <h1 class="hero-headline">6 Manuales Profesionales de Pestañas, <em>Editables en Canva</em></h1>
     <p class="hero-subheadline">Solo agrega tu nombre y tu logo y ten material de nivel profesional para dar clases o elevar tu propio trabajo como lashista.</p>
     <div class="video-wrapper" id="video-wrapper">
-      <video id="hero-video" src="/video.mp4" poster="/video-capa.jpg" playsinline webkit-playsinline preload="metadata"></video>
-      <button type="button" class="play-button-overlay" id="video-play" aria-label="Reproducir video"><span><svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></button>
+      <iframe id="yt" src="https://www.youtube.com/embed/BFKVPzRy3wo?playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1" title="Video Manuales Editables" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;border:0;"></iframe>
     </div>
     <p class="social-proof">✨ Más de 240 páginas listas para usar, incluso con Canva gratis.</p>
   </div>
@@ -676,21 +675,13 @@ document.documentElement.className+=' js';
     el.textContent=String(Math.floor(r/60000)).padStart(2,'0')+':'+String(Math.floor(r%60000/1000)).padStart(2,'0');}
   tick();setInterval(tick,1000);
 })();
-// Video nativo: 1 toque inicia, sem YouTube
+// YouTube: o player carrega junto com a página; o toque da cliente vai direto no play dele (1 toque)
 (function(){
-  var v=document.getElementById('hero-video'), btn=document.getElementById('video-play');
-  if(!v||!btn) return;
+  var fr=document.getElementById('yt'); if(!fr) return;
   var tracked=false;
-  function start(){
-    btn.classList.add('hide');
-    v.controls=true;
-    var p=v.play(); // chamado direto no toque: o iPhone libera o som e não pede 2º clique
-    if(p&&p.catch) p.catch(function(){ btn.classList.remove('hide'); });
-    if(!tracked){ tracked=true; try{fbq('trackCustom','VideoPlay');}catch(e){} }
-  }
-  btn.addEventListener('click',start);
-  v.addEventListener('ended',function(){ v.controls=false; btn.classList.remove('hide'); try{v.currentTime=0;}catch(e){} });
-  v.addEventListener('error',function(){ btn.classList.add('hide'); v.removeAttribute('controls'); }); // se o arquivo faltar, fica só a capa
+  window.addEventListener('blur',function(){ // toque dentro do iframe tira o foco da página
+    if(!tracked && document.activeElement===fr){ tracked=true; try{fbq('trackCustom','VideoPlay');}catch(e){} }
+  });
 })();
 // Carrossel infinito (duplica via JS para o HTML ficar leve)
 document.querySelectorAll('.track').forEach(function(t){
