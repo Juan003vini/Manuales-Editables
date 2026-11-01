@@ -87,10 +87,11 @@ a{color:inherit;}
 .video-facade{position:absolute;inset:0;cursor:pointer;}
 .facade-thumbnail{width:100%;height:100%;object-fit:cover;}
 .play-button-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(42,27,61,.18);}
-.play-button-overlay span{width:84px;height:84px;border-radius:50%;background:rgba(107,78,158,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:pulse2 2s infinite;}
-.play-icon{width:38px;height:38px;fill:#fff;margin-left:5px;}
+.play-button-overlay span{width:124px;height:124px;border:4px solid rgba(255,255,255,.85);border-radius:50%;background:rgba(107,78,158,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:pulse2 2s infinite;}
+.play-icon{width:58px;height:58px;fill:#fff;margin-left:8px;}
 .video-wrapper video{width:100%;height:100%;object-fit:cover;display:block;}
-.social-proof{margin:26px auto 0;font-weight:700;color:var(--accent-deep);max-width:560px;}
+.hero-cta{max-width:340px;margin:26px auto 0;}
+.social-proof{margin:18px auto 0;font-weight:700;color:var(--accent-deep);max-width:560px;}
 
 /* RECIBIR (manual cards) */
 .manual-card{background:#fff;border-radius:var(--radius);padding:22px 20px 24px;border:1px solid var(--line);box-shadow:var(--shadow);text-align:center;position:relative;}
@@ -683,13 +684,25 @@ document.documentElement.className+=' js';
   if(!f) return;
   f.addEventListener('click',function(){
     var w=document.getElementById('video-wrapper');
-    var fr=document.createElement('iframe');
-    fr.src='https://www.youtube-nocookie.com/embed/BFKVPzRy3wo?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=1';
-    fr.title='Video Manuales Editables';
-    fr.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; fullscreen');
-    fr.setAttribute('allowfullscreen','');
-    fr.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;';
-    w.replaceChild(fr,f);
+    // 1) player nativo (sem botões do YouTube); 2) se falhar, cai no YouTube
+    function youtube(){
+      var fr=document.createElement('iframe');
+      fr.src='https://www.youtube-nocookie.com/embed/BFKVPzRy3wo?autoplay=1&playsinline=1&rel=0&modestbranding=1&controls=0&iv_load_policy=3&fs=0&disablekb=1';
+      fr.title='Video Manuales Editables';
+      fr.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; fullscreen');
+      fr.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;';
+      var cur=w.firstElementChild; w.replaceChild(fr,cur);
+    }
+    var v=document.createElement('video');
+    v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');v.playsInline=true;
+    v.controls=false;v.preload='auto';v.poster='/video-capa.jpg';
+    v.style.cssText='width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;';
+    var s=document.createElement('source');s.src='/video.mp4';s.type='video/mp4';v.appendChild(s);
+    var failed=false; function fail(){ if(!failed){failed=true;youtube();} }
+    s.addEventListener('error',fail); v.addEventListener('error',fail);
+    v.addEventListener('click',function(){ if(v.paused){v.play();}else{v.pause();} });
+    w.replaceChild(v,f);
+    var p=v.play(); if(p&&p.catch) p.catch(function(){});
     try{fbq('trackCustom','VideoPlay');}catch(e){}
   });
 })();
