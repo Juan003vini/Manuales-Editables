@@ -84,9 +84,9 @@ a{color:inherit;}
 .hero-headline em{font-style:italic;color:var(--accent);}
 .hero-subheadline{font-size:1.12rem;color:rgba(42,27,61,.75);max-width:640px;margin:0 auto 28px;}
 .video-wrapper{position:relative;max-width:340px;margin:0 auto;border-radius:22px;overflow:hidden;box-shadow:0 26px 60px rgba(42,27,61,.28);aspect-ratio:9/16;background:#000;}
-.video-facade{position:absolute;inset:0;cursor:pointer;}
-.facade-thumbnail{width:100%;height:100%;object-fit:cover;}
-.play-button-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(42,27,61,.18);}
+.video-wrapper video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;background:#000;}
+.play-button-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(42,27,61,.12);border:0;padding:0;margin:0;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:2;}
+.play-button-overlay.hide{display:none;}
 .play-button-overlay span{width:124px;height:124px;border:4px solid rgba(255,255,255,.85);border-radius:50%;background:rgba(107,78,158,.92);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 30px rgba(0,0,0,.35);animation:pulse2 2s infinite;}
 .play-icon{width:58px;height:58px;fill:#fff;margin-left:8px;}
 .video-wrapper video{width:100%;height:100%;object-fit:cover;display:block;}
@@ -334,10 +334,8 @@ a{color:inherit;}
     <h1 class="hero-headline">6 Manuales Profesionales de Pestañas, <em>Editables en Canva</em></h1>
     <p class="hero-subheadline">Solo agrega tu nombre y tu logo y ten material de nivel profesional para dar clases o elevar tu propio trabajo como lashista.</p>
     <div class="video-wrapper" id="video-wrapper">
-      <div class="video-facade" id="video-facade" role="button" aria-label="Ver video">
-        <img src="/video-capa.jpg" alt="Vista previa del video" class="facade-thumbnail" loading="eager">
-        <div class="play-button-overlay"><span><svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div>
-      </div>
+      <video id="hero-video" src="/video.mp4" poster="/video-capa.jpg" playsinline webkit-playsinline preload="metadata"></video>
+      <button type="button" class="play-button-overlay" id="video-play" aria-label="Reproducir video"><span><svg class="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></button>
     </div>
     <p class="social-proof">✨ Más de 240 páginas listas para usar, incluso con Canva gratis.</p>
   </div>
@@ -678,44 +676,21 @@ document.documentElement.className+=' js';
     el.textContent=String(Math.floor(r/60000)).padStart(2,'0')+':'+String(Math.floor(r%60000/1000)).padStart(2,'0');}
   tick();setInterval(tick,1000);
 })();
-// Video: 1 toque sempre. Testa o video.mp4 ao abrir a página:
-// se estiver ok, toca o vídeo direto ao tocar na capa; se não, troca já pelo YouTube (o toque vai direto no play dele).
+// Video nativo: 1 toque inicia, sem YouTube
 (function(){
-  var w=document.getElementById('video-wrapper'), f=document.getElementById('video-facade');
-  if(!w||!f) return;
-  var YT='https://www.youtube-nocookie.com/embed/BFKVPzRy3wo?playsinline=1&rel=0&modestbranding=1&iv_load_policy=3';
-  var mode='wait';
-  function youtube(){
-    if(mode==='yt'||mode==='native') return; // nunca recarrega o player
-    mode='yt';
-    var fr=document.createElement('iframe');
-    fr.src=YT; fr.title='Video Manuales Editables';
-    fr.setAttribute('allow','autoplay; encrypted-media; picture-in-picture; fullscreen');
-    fr.setAttribute('allowfullscreen','');
-    fr.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;';
-    w.innerHTML=''; w.appendChild(fr);
+  var v=document.getElementById('hero-video'), btn=document.getElementById('video-play');
+  if(!v||!btn) return;
+  var tracked=false;
+  function start(){
+    btn.classList.add('hide');
+    v.controls=true;
+    var p=v.play(); // chamado direto no toque: o iPhone libera o som e não pede 2º clique
+    if(p&&p.catch) p.catch(function(){ btn.classList.remove('hide'); });
+    if(!tracked){ tracked=true; try{fbq('trackCustom','VideoPlay');}catch(e){} }
   }
-  function native(){
-    if(mode==='native') return;
-    mode='native';
-    var v=document.createElement('video');
-    v.setAttribute('playsinline','');v.setAttribute('webkit-playsinline','');v.playsInline=true;
-    v.controls=true;v.preload='auto';v.poster='/video-capa.jpg';v.src='/video.mp4';
-    v.style.cssText='width:100%;height:100%;object-fit:cover;display:block;background:#000;';
-    v.addEventListener('error',function(){mode='mp4-fail';youtube();});
-    w.innerHTML=''; w.appendChild(v);
-    var p=v.play(); if(p&&p.catch) p.catch(function(){});
-    try{fbq('trackCustom','VideoPlay');}catch(e){}
-  }
-  fetch('/video.mp4',{method:'HEAD',cache:'no-store'}).then(function(r){
-    var len=parseInt(r.headers.get('content-length')||'0',10), ty=r.headers.get('content-type')||'';
-    if(mode!=='wait') return; // a cliente já tocou: não mexe no player
-    if(r.ok && len>500000 && ty.indexOf('video')>-1){ mode='mp4'; } else { youtube(); }
-  }).catch(function(){ if(mode==='wait') youtube(); });
-  f.addEventListener('click',function(){
-    if(mode==='mp4'){ native(); }
-    else if(mode==='wait'){ youtube(); }
-  });
+  btn.addEventListener('click',start);
+  v.addEventListener('ended',function(){ v.controls=false; btn.classList.remove('hide'); try{v.currentTime=0;}catch(e){} });
+  v.addEventListener('error',function(){ btn.classList.add('hide'); v.removeAttribute('controls'); }); // se o arquivo faltar, fica só a capa
 })();
 // Carrossel infinito (duplica via JS para o HTML ficar leve)
 document.querySelectorAll('.track').forEach(function(t){
